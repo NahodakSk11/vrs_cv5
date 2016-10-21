@@ -6,45 +6,42 @@
 uint16_t adc_value = 0;
 uint16_t printmode = 0;
 
+
 int main(void) {
 
 	nvic_init();
+	usart_init();
 	gpio_init();
 	adc_init();
-
+	USART_SendData(USART1, '\n');
+	//Infinite loop
+	char vypis[10];
+	uint16_t i = 10;
 	while (1) {
-		ADC_SoftwareStartConv(ADC1);
-		while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC)) {
-		}
-		int AD_value = adc_value; // do AD_value  sa mi zapisuje hodnota vystupu z tlacidiel
+		if (i >= 10) {
+			if (printmode) {
+				sprintf(vypis, "%f", ((float) adc_value) / (1241.21));
+				vypis[4] = 'V';
+				vypis[5] = ' ';
+				vypis[6] = ' ';
+				vypis[7] = '\n';
+				vypis[8] = '\r';
+				vypis[9] = 0;
+			} else
+				sprintf(vypis, "%d\n\r", adc_value);
 
-		// èas kde pozorujem ktore tlacidlo je stlacene a podla toho nastavujem roznu rychlost blikania ledky
-		//ak tlacidlo drzim stlacene tak ledka blika nizsie nastavenou rychlostou
-		//pokial nedrzim tlacidlo tak sa ledka vypne
-		//pre jednotlive tlacidla sme urcili rozmedzie pre AD_value +-cca 5.
-		//pre tlacidlo 1 (najblizsie k dratom) to boli hodnoti cca v zormedzi 4046 až 4049
-		if (AD_value > 3640 && AD_value < 3680) {
-			GPIO_ToggleBits(GPIOA, GPIO_Pin_5);
-			delay(25000);
+			i = 0;
 		}
-		//tlacidlo 2
-		else if (AD_value > 3445 && AD_value < 3490) {
-			GPIO_ToggleBits(GPIOA, GPIO_Pin_5);
-			delay(50000);
-		}
-		//tlacidlo 3
-		else if (AD_value > 2900 && AD_value < 2950) {
-			GPIO_ToggleBits(GPIOA, GPIO_Pin_5);
-			delay(75000);
-		}
-		//tlacidlo 4
-		else if (AD_value > 2000 && AD_value < 2050) {
-			GPIO_ToggleBits(GPIOA, GPIO_Pin_5);
-			delay(100000);
-		}
-		// nic nie je zatlacene
-		else {
-			GPIO_ResetBits(GPIOA, GPIO_Pin_5);
+
+		if (USART1->SR & USART_FLAG_TC) {
+			if (i < 10) {
+
+				USART_SendData(USART1, vypis[i]);
+				if (vypis[i] == 0) {
+					i = 10;
+				} else
+					i++;
+			}
 		}
 	}
 	return 0;
