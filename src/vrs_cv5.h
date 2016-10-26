@@ -11,6 +11,7 @@ void delay();
 void usart_init();
 void nvic_init();
 void adc_init();
+void UART_puts();
 
 
 #endif /* VRS_CV5_H_ */
