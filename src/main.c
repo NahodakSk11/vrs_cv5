@@ -10,12 +10,14 @@ char vypis[128];
 
 int main(void) {
 
+	__disable_irq();
 	nvic_init();
 	usart_init();
 	gpio_init();
 	adc_init();
-	USART_SendData(USART2, '\n');
-	USART_SendData(USART2, '\r');
+	//USART_SendData(USART2, '\n');
+	//USART_SendData(USART2, '\r');
+	__enable_irq();
 
 	//Infinite loop
 	while (1) {
@@ -28,7 +30,7 @@ int main(void) {
 		} else {
 			sprintf(vypis, "%d       \r", adc_value);
 		}
-
+		USART_puts_async(vypis);
 		//USART_puts(vypis);
 		delay(10000);
 	}
